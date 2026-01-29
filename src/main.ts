@@ -363,65 +363,6 @@ if (!AFRAME.components.snowfall) {
 	});
 }
 
-if (!AFRAME.components["ar-button"]) {
-	AFRAME.registerComponent("ar-button", {
-		init() {
-			const component = this as { button?: HTMLButtonElement };
-			const scene = this.el.sceneEl as
-				| (AScene & { enterAR?: () => void })
-				| null;
-			if (!scene) {
-				return;
-			}
-			const button = document.createElement("button");
-			button.textContent = "Enter AR";
-			button.style.position = "absolute";
-			button.style.bottom = "16px";
-			button.style.right = "16px";
-			button.style.padding = "10px 16px";
-			button.style.borderRadius = "999px";
-			button.style.border = "none";
-			button.style.background = "#111827";
-			button.style.color = "#ffffff";
-			button.style.fontSize = "14px";
-			button.style.zIndex = "9999";
-			button.style.cursor = "pointer";
-			button.addEventListener("click", async () => {
-				try {
-					if (scene.enterAR) {
-						scene.enterAR();
-						return;
-					}
-					const renderer = scene.renderer;
-					if (!renderer || !navigator.xr) {
-						return;
-					}
-					const session = await navigator.xr.requestSession("immersive-ar", {
-						requiredFeatures: ["local-floor"],
-						optionalFeatures: ["hit-test"],
-					});
-					renderer.xr.setSession(session);
-				} catch {
-					button.textContent = "AR not available";
-				}
-			});
-			document.body.appendChild(button);
-			component.button = button;
-			if (navigator.xr?.isSessionSupported) {
-				navigator.xr.isSessionSupported("immersive-ar").then((supported) => {
-					button.style.opacity = supported ? "1" : "0.5";
-				});
-			}
-		},
-		remove() {
-			const component = this as { button?: HTMLButtonElement };
-			if (component.button?.parentElement) {
-				component.button.parentElement.removeChild(component.button);
-			}
-		},
-	});
-}
-
 if (!AFRAME.components.snowball) {
 	AFRAME.registerComponent("snowball", {
 		schema: {
