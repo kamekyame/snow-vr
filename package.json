@@ -1,0 +1,24 @@
+{
+	"name": "snow-vr",
+	"version": "1.0.0",
+	"description": "A simple WebVR snowball creation app",
+	"main": "src/main.ts",
+	"scripts": {
+		"dev": "vite",
+		"build": "vite build",
+		"preview": "vite preview",
+		"lint": "biome lint",
+		"fmt": "biome format ."
+	},
+	"devDependencies": {
+		"@biomejs/biome": "^2.3.12",
+		"@types/aframe": "^1.2.9",
+		"@types/node": "^25.0.10",
+		"@vitejs/plugin-basic-ssl": "^2.1.4",
+		"typescript": "5.9.3",
+		"vite": "7.3.1"
+	},
+	"dependencies": {
+		"aframe": "^1.7.1"
+	}
+}
