@@ -5,6 +5,7 @@ import { resolve } from "node:path";
 export default defineConfig({
 	plugins: [basicSsl()],
 	root: ".",
+	base: "/snow-vr/",
 	build: {
 		rollupOptions: {
 			input: resolve(__dirname, "index.html"),
