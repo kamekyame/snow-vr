@@ -25,14 +25,6 @@ type SnowSystem = {
 
 type SnowScene = AScene & { systems: { snow: SnowSystem } };
 
-type HitTestComponent = {
-	hitTestSource: XRHitTestSource | null;
-	hitTestSourceRequested: boolean;
-	viewerSpace: XRReferenceSpace | null;
-	data: { reticle?: AEntity | null };
-	onSessionEnd: () => void;
-};
-
 type SnowfallState = {
 	points: InstancedMesh | null;
 	geometry: SphereGeometry | null;
@@ -425,95 +417,6 @@ if (!AFRAME.components["ar-button"]) {
 			const component = this as { button?: HTMLButtonElement };
 			if (component.button?.parentElement) {
 				component.button.parentElement.removeChild(component.button);
-			}
-		},
-	});
-}
-
-if (!AFRAME.components["ar-hit-test"]) {
-	AFRAME.registerComponent("ar-hit-test", {
-		schema: {
-			reticle: { type: "selector" },
-		},
-		init() {
-			const component = this as unknown as HitTestComponent;
-			component.hitTestSource = null;
-			component.hitTestSourceRequested = false;
-			component.viewerSpace = null;
-			component.onSessionEnd = component.onSessionEnd.bind(this);
-		},
-		onSessionEnd() {
-			const component = this as unknown as HitTestComponent;
-			component.hitTestSourceRequested = false;
-			component.hitTestSource = null;
-			component.viewerSpace = null;
-			if (this.data.reticle) {
-				this.data.reticle.object3D.visible = false;
-			}
-		},
-		tick() {
-			const component = this as unknown as HitTestComponent;
-			const scene = this.el.sceneEl as SnowScene | undefined;
-			if (!scene) {
-				return;
-			}
-			const renderer = scene.renderer;
-			const system = scene.systems.snow;
-			if (!renderer) {
-				return;
-			}
-			const session = renderer.xr.getSession();
-			if (!session || !scene.is("ar-mode")) {
-				if (this.data.reticle) {
-					this.data.reticle.object3D.visible = false;
-				}
-				return;
-			}
-
-			if (!component.hitTestSourceRequested) {
-				session.addEventListener("end", this.onSessionEnd, { once: true });
-				const requestRef = session.requestReferenceSpace?.bind(session);
-				const requestHit = session.requestHitTestSource?.bind(session);
-				if (!requestRef || !requestHit) {
-					return;
-				}
-				requestRef("viewer")
-					.then((referenceSpace: XRReferenceSpace) => {
-						component.viewerSpace = referenceSpace;
-						return requestHit({ space: referenceSpace });
-					})
-					.then((source) => {
-						component.hitTestSource = source ?? null;
-					})
-					.catch(() => {
-						component.hitTestSource = null;
-					});
-				component.hitTestSourceRequested = true;
-			}
-
-			const frame = renderer.xr.getFrame();
-			const referenceSpace = renderer.xr.getReferenceSpace();
-			if (!frame || !component.hitTestSource || !referenceSpace) {
-				return;
-			}
-
-			const hitTestResults = frame.getHitTestResults(component.hitTestSource);
-			if (hitTestResults.length > 0) {
-				const hit = hitTestResults[0];
-				const pose = hit.getPose(referenceSpace);
-				if (pose && this.data.reticle) {
-					this.data.reticle.object3D.visible = true;
-					this.data.reticle.object3D.matrix.fromArray(pose.transform.matrix);
-					this.data.reticle.object3D.matrixAutoUpdate = false;
-					if (system) {
-						system.setGroundHeight(pose.transform.position.y);
-					}
-					return;
-				}
-			}
-
-			if (this.data.reticle) {
-				this.data.reticle.object3D.visible = false;
 			}
 		},
 	});
@@ -1065,7 +968,6 @@ if (!AFRAME.components["rolling-hand"]) {
 if (!AFRAME.components["spawn-seed"]) {
 	AFRAME.registerComponent("spawn-seed", {
 		schema: {
-			reticle: { type: "selector" },
 			spawnOffset: { type: "number", default: 0.2 },
 		},
 		init() {
@@ -1089,18 +991,11 @@ if (!AFRAME.components["spawn-seed"]) {
 			const handPosition = new THREE.Vector3();
 			this.el.object3D.getWorldPosition(handPosition);
 
-			let spawnPosition = null;
-			if (this.data.reticle?.object3D.visible) {
-				spawnPosition = new THREE.Vector3();
-				spawnPosition.setFromMatrixPosition(this.data.reticle.object3D.matrix);
-				spawnPosition.y = handPosition.y + this.data.spawnOffset;
-			} else {
-				spawnPosition = new THREE.Vector3(
-					handPosition.x,
-					handPosition.y + this.data.spawnOffset,
-					handPosition.z,
-				);
-			}
+			const spawnPosition = new THREE.Vector3(
+				handPosition.x,
+				handPosition.y + this.data.spawnOffset,
+				handPosition.z,
+			);
 
 			createSnowballEntity(scene, spawnPosition);
 			const system = scene.systems.snow;
