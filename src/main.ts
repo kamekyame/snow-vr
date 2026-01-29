@@ -888,7 +888,7 @@ if (!AFRAME.components["rolling-hand"]) {
 								1,
 								snowballComponent.radius / snowballComponent.baseRadius,
 							);
-							const scaledDistance = rolledDistance / sizeFactor;
+							const scaledDistance = rolledDistance / Math.pow(sizeFactor, 0.6);
 							snowballComponent.growBy(scaledDistance);
 							const now = performance.now();
 							if (now - component.lastHapticTime > 120) {
