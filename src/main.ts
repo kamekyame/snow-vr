@@ -487,7 +487,10 @@ if (!AFRAME.components["rolling-hand"]) {
 			sinkDepth: { type: "number", default: 0.02 },
 			rollThreshold: { type: "number", default: 0.008 },
 			crushThreshold: { type: "number", default: 0.03 },
-			fingertipOffset: { type: "vec3", default: { x: 0.0, y: -0.05, z: -0.0 } },
+			fingertipOffset: {
+				type: "vec3",
+				default: { x: 0.03, y: -0.04, z: -0.0 },
+			},
 			debug: { type: "boolean", default: false },
 		},
 		init() {
