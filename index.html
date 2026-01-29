@@ -25,7 +25,13 @@
     ></a-plane>
 
     <a-entity id="rig" position="0 0 0">
-      <a-entity id="camera" camera position="0 1.6 3" look-controls></a-entity>
+      <a-entity id="camera" camera position="0 1.6 3" look-controls>
+        <a-entity
+          title-once
+          position="0 0 -1.2"
+          text="value: Snowball VR; align: center; color: #ffffff; width: 2.6"
+        ></a-entity>
+      </a-entity>
       <a-entity
         id="leftHand"
         hand-controls="hand: left"

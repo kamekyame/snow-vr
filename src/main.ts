@@ -47,6 +47,14 @@ type SnowfallState = {
 	el: AEntity;
 };
 
+type TitleOnceState = {
+	timeoutId: number | null;
+	hidden: boolean;
+	onInteraction: () => void;
+	data: { duration: number };
+	el: AEntity;
+};
+
 type RollingHandState = {
 	rollingSnowball: AEntity | null;
 	lastHandPosition: Vector3 | null;
@@ -104,6 +112,7 @@ const createSnowballEntity = (sceneEl: SnowScene, position: Vector3) => {
 	snowball.setAttribute("snowball", "");
 	snowball.object3D.position.copy(position);
 	sceneEl.appendChild(snowball);
+	sceneEl.emit("snow-interaction");
 	const system = sceneEl.systems.snow;
 	const applyNoise = () => {
 		const mesh = snowball.getObject3D("mesh");
@@ -359,6 +368,47 @@ if (!AFRAME.components.snowfall) {
 			component.points = null;
 			component.geometry = null;
 			component.material = null;
+		},
+	});
+}
+
+if (!AFRAME.components["title-once"]) {
+	AFRAME.registerComponent("title-once", {
+		schema: {
+			duration: { type: "number", default: 0 },
+		},
+		init() {
+			const component = this as unknown as TitleOnceState;
+			component.hidden = false;
+			component.onInteraction = () => {
+				if (component.hidden) {
+					return;
+				}
+				component.hidden = true;
+				component.el.setAttribute("visible", "false");
+			};
+			if (component.data.duration > 0) {
+				component.timeoutId = window.setTimeout(() => {
+					component.onInteraction();
+				}, component.data.duration);
+			} else {
+				component.timeoutId = null;
+			}
+			component.el.sceneEl?.addEventListener(
+				"snow-interaction",
+				component.onInteraction,
+			);
+		},
+		remove() {
+			const component = this as unknown as TitleOnceState;
+			if (component.timeoutId !== null) {
+				window.clearTimeout(component.timeoutId);
+				component.timeoutId = null;
+			}
+			component.el.sceneEl?.removeEventListener(
+				"snow-interaction",
+				component.onInteraction,
+			);
 		},
 	});
 }
@@ -883,6 +933,9 @@ if (!AFRAME.components["rolling-hand"]) {
 							).normalize();
 							const rollAngle = moveDistance / snowballRadius;
 							rolling.object3D.rotateOnWorldAxis(rollAxis, rollAngle);
+						}
+						if (moveDistance > 0.002) {
+							scene.emit("snow-interaction");
 						}
 						snowballComponent.applyImpulse(impulse);
 						const rolledDistance = moveDelta.length();
